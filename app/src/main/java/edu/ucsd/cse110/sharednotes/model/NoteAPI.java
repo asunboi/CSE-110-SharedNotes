@@ -111,19 +111,23 @@ public class NoteAPI {
         return future;
     }
 
-    public String putNote(Note note){
-        String url = note.title;
-        String encodedURL = url.replace(" ", "%20");
+    public Note putNote(Note note){
+        String title = note.title;
+        String url = title.replace(" ", "%20");
 
         RequestBody body = RequestBody.create(note.toJSON(), JSON);
 
         Request request = new Request.Builder()
-                .url(encodedURL)
+                .url("https://sharednotes.goto.ucsd.edu/notes/" + url)
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            return response.body().string();
+            assert response.body() != null;
+            var responsebody = response.body().string();
+            Note outputNote = Note.fromJSON(responsebody);
+            Log.i(url, responsebody);
+            return outputNote;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
