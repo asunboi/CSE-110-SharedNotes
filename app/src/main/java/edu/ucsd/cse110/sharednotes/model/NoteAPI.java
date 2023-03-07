@@ -81,19 +81,21 @@ public class NoteAPI {
     }
 
     @WorkerThread
-    public String getNote(Note note) {
-        String url = note.title;
-        String encodedURL = url.replace(" ", "%20");
+    public Note getNote(String title){
+        // URLs cannot contain spaces, so we replace them with %20.
+        String url = title.replace(" ", "%20");
 
         var request = new Request.Builder()
-                .url("https://sharednotes.goto.ucsd.edu/echo/" + encodedURL)
+                .url("https://sharednotes.goto.ucsd.edu/notes/" + url)
+                .method("GET", null)
                 .build();
 
         try (var response = client.newCall(request).execute()) {
             assert response.body() != null;
             var body = response.body().string();
+            Note outputNote = Note.fromJSON(body);
             Log.i(url, body);
-            return body;
+            return outputNote;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -101,9 +103,9 @@ public class NoteAPI {
     }
 
     @AnyThread
-    public Future<String> getNoteAsync(Note note) {
+    public Future<Note> getNoteAsync(String title) {
         var executor = Executors.newSingleThreadExecutor();
-        var future = executor.submit(() -> getNote(note));
+        var future = executor.submit(() -> getNote(title));
 
         // We can use future.get(1, SECONDS) to wait for the result.
         return future;
