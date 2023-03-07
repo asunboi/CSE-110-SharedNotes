@@ -19,7 +19,7 @@ public class NoteRepository {
 
     public NoteRepository(NoteDao dao) {
         this.dao = dao;
-        this.noteAPI = new NoteAPI();
+        this.noteAPI = NoteAPI.provide();
     }
 
     // Synced Methods
