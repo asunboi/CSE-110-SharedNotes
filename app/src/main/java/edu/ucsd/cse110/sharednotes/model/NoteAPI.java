@@ -111,7 +111,8 @@ public class NoteAPI {
         return future;
     }
 
-    public Note putNote(Note note){
+    @WorkerThread
+    public void putNote(Note note){
         String title = note.title;
         String url = title.replace(" ", "%20");
 
@@ -119,18 +120,20 @@ public class NoteAPI {
 
         Request request = new Request.Builder()
                 .url("https://sharednotes.goto.ucsd.edu/notes/" + url)
-                .post(body)
+                .method("PUT", body)
                 .build();
-
-        try (Response response = client.newCall(request).execute()) {
-            assert response.body() != null;
-            var responsebody = response.body().string();
-            Note outputNote = Note.fromJSON(responsebody);
-            Log.i(url, responsebody);
-            return outputNote;
+        try {
+            client.newCall(request).execute();
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
+    }
+
+    @AnyThread
+    public void putNoteAsync(Note note) {
+        var executor = Executors.newSingleThreadExecutor();
+        var future = executor.submit(() -> putNote(note));
+
+        // We can use future.get(1, SECONDS) to wait for the result.
     }
 }
